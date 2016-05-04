@@ -124,6 +124,8 @@ func main() {
 		metricsPath       = flag.String("web.telemetry-path", "/metrics", "Path under which to expose metrics.")
 		enabledCollectors = flag.String("collectors.enabled", filterAvailableCollectors(defaultCollectors), "Comma-separated list of collectors to use.")
 		printCollectors   = flag.Bool("collectors.print", false, "If true, print available collectors and exit.")
+		listenTLScert     = flag.String("web.listen-tls-cert", "", "Path to a TLS cert file.")
+		listenTLSkey      = flag.String("web.listen-tls-key", "", "Path to a TLS key file.")
 	)
 	flag.Parse()
 
@@ -174,7 +176,11 @@ func main() {
 	})
 
 	log.Infoln("Listening on", *listenAddress)
-	err = http.ListenAndServe(*listenAddress, nil)
+	if *listenTLScert != "" && *listenTLSkey != "" {
+		err = http.ListenAndServeTLS(*listenAddress, *listenTLScert, *listenTLSkey, nil)
+	} else {
+		err = http.ListenAndServe(*listenAddress, nil)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
